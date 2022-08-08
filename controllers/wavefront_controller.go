@@ -247,7 +247,7 @@ func (r *WavefrontReconciler) createKubernetesObjects(resources []string, wavefr
 		if labelVal, _ := objLabels["app.kubernetes.io/component"]; labelVal == "logging" && !wavefrontSpec.DataExport.Logging.Enable {
 			continue
 		}
-		if object.GetKind() == "ConfigMap" && wavefrontSpec.DataCollection.Metrics.CollectorConfigName != object.GetName() {
+		if labelVal, _ := objLabels["app.kubernetes.io/component"]; labelVal == "collector" && object.GetKind() == "ConfigMap" && wavefrontSpec.DataCollection.Metrics.CollectorConfigName != object.GetName() {
 			continue
 		}
 

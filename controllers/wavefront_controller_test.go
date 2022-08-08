@@ -589,6 +589,7 @@ func defaultWFSpec() wf.WavefrontSpec {
 				Enable:     true,
 				MetricPort: 2878,
 			},
+			//Logging: wf.Logging{Enable: true},
 		},
 		DataCollection: wf.DataCollection{
 			Metrics: wf.Metrics{

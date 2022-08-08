@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app.kubernetes.io/name : wavefront
+    app.kubernetes.io/name: wavefront
     app.kubernetes.io.instance: "hyperlogs"
     app.kubernetes.io/component: logging
     app: hyperlogs-proxy
