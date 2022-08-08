@@ -87,12 +87,20 @@ type Metrics struct {
 	ProxyAddress string `json:"-"`
 }
 
+type Logging struct {
+	// Enable is whether to enable the wavefront logging. Defaults to false.
+	// +kubebuilder:default:=false
+	Enable bool `json:"enable,omitempty"`
+}
+
 type DataExport struct {
 	// External Wavefront WavefrontProxy configuration
 	ExternalWavefrontProxy ExternalWavefrontProxy `json:"externalWavefrontProxy,omitempty"`
 
 	// WavefrontProxy configuration options
 	WavefrontProxy WavefrontProxy `json:"wavefrontProxy,omitempty"`
+
+	Logging Logging `json:"logging,omitempty"`
 }
 
 type ExternalWavefrontProxy struct {

@@ -249,6 +249,14 @@ spec:
                     required:
                     - url
                     type: object
+                  logging:
+                    properties:
+                      enable:
+                        default: false
+                        description: Enable is whether to enable the wavefront logging.
+                          Defaults to false.
+                        type: boolean
+                    type: object
                   wavefrontProxy:
                     description: WavefrontProxy configuration options
                     properties:
