@@ -6,9 +6,11 @@ rules:
   - apiGroups:
       - ""
     resources:
-      - "namespaces"
-      - "pods"
+      - namespaces
+      - pods
+      - deployments
+      - events
     verbs:
-      - "list"
-      - "get"
-      - "watch"
+      - list
+      - get
+      - watch

@@ -14,13 +14,6 @@ data:
     @include wavefront-proxy.conf
     #@include file-fluent.conf
   pods-kind-fluent.conf: |-
-    env:
-    - name: "FLUENTD_CONF"
-      value: "../../../etc/fluent/fluent.conf"
-    - name: MY_NODE_NAME
-      valueFrom:
-        fieldRef:
-          fieldPath: spec.nodeName
     <source>
       @type tail
       @log_level debug
@@ -42,10 +35,14 @@ data:
       kubernetes_url "#{ENV['FLUENT_FILTER_KUBERNETES_URL'] || 'https://' + ENV.fetch('KUBERNETES_SERVICE_HOST') + ':' + ENV.fetch('KUBERNETES_SERVICE_PORT') + '/api'}"
       verify_ssl "#{ENV['KUBERNETES_VERIFY_SSL'] || true}"
       ca_file "#{ENV['KUBERNETES_CA_FILE']}"
-      skip_labels "#{ENV['FLUENT_KUBERNETES_METADATA_SKIP_LABELS'] || 'false'}"
-      skip_container_metadata "#{ENV['FLUENT_KUBERNETES_METADATA_SKIP_CONTAINER_METADATA'] || 'false'}"
-      skip_master_url "#{ENV['FLUENT_KUBERNETES_METADATA_SKIP_MASTER_URL'] || 'false'}"
-      skip_namespace_metadata "#{ENV['FLUENT_KUBERNETES_METADATA_SKIP_NAMESPACE_METADATA'] || 'false'}"
+      skip_labels false
+      skip_container_metadata false
+      skip_namespace_metadata true
+      skip_master_url true
+      #skip_labels "#{ENV['FLUENT_KUBERNETES_METADATA_SKIP_LABELS'] || 'false'}"
+      #skip_container_metadata "#{ENV['FLUENT_KUBERNETES_METADATA_SKIP_CONTAINER_METADATA'] || 'false'}"
+      #skip_master_url "#{ENV['FLUENT_KUBERNETES_METADATA_SKIP_MASTER_URL'] || 'false'}"
+      #skip_namespace_metadata "#{ENV['FLUENT_KUBERNETES_METADATA_SKIP_NAMESPACE_METADATA'] || 'false'}"
     </filter>
     <filter kubernetes.**>
       @type grep
@@ -53,22 +50,33 @@ data:
         # Exclude hyperlogs proxy and fluentd logs
         <exclude>
           key $.kubernetes.container_name
-          pattern /(^proxy$|^fluentd-wf$)/
-          #pattern /(^hyperlogs-proxy$|^fluentd$)/
+          pattern ^fluentd-wf$
         </exclude>
       </and>
     </filter>
+    ## Concatenate multi-line logs
+    #<filter **>
+    #  @id filter_concat
+    #  @type concat
+    #  key message
+    #  multiline_end_regexp /\n$/
+    #  separator ""
+    #</filter>
     <filter kubernetes.**>
       @type record_transformer
       enable_ruby
-      remove_keys kubernetes, docker
       <record>
         # hyperlogs
         service "${record.dig('kubernetes', 'labels', 'service')? record.dig('kubernetes', 'labels', 'service') : 'none'}"
         application "${record.dig('kubernetes', 'labels', 'application')? record.dig('kubernetes', 'labels', 'application') : 'none'}"
-        source "#{ENV['MY_NODE_NAME']}"
+        source "#{ENV['MY_NODE_NAME']}-0809-4"
         timestamp ${time.to_datetime().strftime('%Q')}
+        pod_name "${record.dig('kubernetes', 'pod_name')}"
+        pod_name2 ${record["kubernetes"]["pod_name"]}
+        container_name ${record["kubernetes"]["container_name"]}
+        namespace_name ${record["kubernetes"]["namespace_name"]}
       </record>
+      remove_keys kubernetes, docker
     </filter>
 
   file-fluent.conf: |-
