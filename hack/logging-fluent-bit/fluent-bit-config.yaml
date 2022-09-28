@@ -42,19 +42,12 @@ data:
         K8S-Logging.Exclude On
 
     [OUTPUT]
-        Name es
+        Name http
         Match kube.*
-        Host elasticsearch-master
-        Logstash_Format On
-        Retry_Limit False
-
-    [OUTPUT]
-        Name es
-        Match host.*
-        Host elasticsearch-master
-        Logstash_Format On
-        Logstash_Prefix node
-        Retry_Limit False
+        Host http://wavefront-proxy
+        Port 2878
+        URI /logs/json_array?f=logs_json_arr
+        Format json_lines
 kind: ConfigMap
 metadata:
   annotations:
