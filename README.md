@@ -38,7 +38,7 @@ For example, Istio and MySQL metrics, Telegraf configuration, etc. are still sup
 
 # Installation
 
-**Note:**  The Wavefront Operator for Kubernetes helm chart has been deprecated and is no longer be supported. Please use the deploy, upgrade and removal instructions below.
+**Note:**  The Wavefront Operator for Kubernetes helm chart has been deprecated and is no longer supported. For details on migrating from existing helm chart or manual deploy, see [Migration](docs/migration.md). For new installations, use the following deploy, upgrade, and removal instructions.
 
 ## Prerequisites
 
@@ -49,18 +49,18 @@ The following tools are required for installing the integration.
 ## Deploy the Wavefront Collector and Proxy with the Operator
 1. Install the Wavefront Operator
 
-   Note: If you already have Wavefront installed via helm or manual deploy, uninstall them before you install the operator
+   **Note**: If you already have Wavefront installed via helm or manual deploy, uninstall them before you install the Operator. 
  
    ```
    kubectl apply -f https://raw.githubusercontent.com/wavefrontHQ/wavefront-operator-for-kubernetes/main/deploy/kubernetes/wavefront-operator.yaml
    ```
 
-2. Create a Kubernetes secret with your Wavefront Token.
+2. Create a Kubernetes secret with your Wavefront token.
    See [Managing API Tokens](https://docs.wavefront.com/wavefront_api.html#managing-api-tokens) page.
    ```
    kubectl create -n observability-system secret generic wavefront-secret --from-literal token=YOUR_WAVEFRONT_TOKEN
    ```
-3. Create a `wavefront.yaml` file with your Wavefront Custom Resource configuration.  The simplest configuration is:
+3. Create a `wavefront.yaml` file with your Wavefront custom resource configuration.  The simplest configuration is:
    ```yaml
    # Need to change YOUR_CLUSTER_NAME and YOUR_WAVEFRONT_URL
    apiVersion: wavefront.com/v1alpha1
@@ -80,12 +80,32 @@ The following tools are required for installing the integration.
    ```
    See the [Configuration](#configuration) section below about Custom Resource Configuration.
 
-
-4. Deploy the Wavefront Collector and Proxy with the above configuration
+4. (Logging Beta) If your Wavefront instance has been enabled for logging, and if you want to send log data from your Kubernetes environment to the Wavefront proxy, add `logging: enable: true` as follows: 
+```yaml
+   # Need to change YOUR_CLUSTER_NAME, YOUR_WAVEFRONT_URL accordingly
+   apiVersion: wavefront.com/v1alpha1
+   kind: Wavefront
+   metadata:
+     name: wavefront
+     namespace: observability-system
+   spec:
+     clusterName: YOUR_CLUSTER_NAME
+     wavefrontUrl: YOUR_WAVEFRONT_URL
+     dataCollection:
+       metrics:
+         enable: true
+      logging:
+         enable: true
+     dataExport:
+       wavefrontProxy:
+         enable: true
+   ```
+   Contact your VMware account representative if you want to have logging enabled. 
+5. Deploy the Wavefront Collector and proxy with the above configuration
    ```
    kubectl apply -f <path_to_your_wavefront.yaml>
    ```
-5. Run the following command to get status for the Wavefront Integration:
+6. Run the following command to get status for the Wavefront integration:
    ```
    kubectl get wavefront -n observability-system
    ```
@@ -94,12 +114,11 @@ The following tools are required for installing the integration.
    NAME                   STATUS    PROXY           CLUSTER-COLLECTOR   NODE-COLLECTOR   LOGGING        AGE
    observability-system   Healthy   Running (1/1)   Running (1/1)       Running (3/3)    Running (3/3)  2m4s
    ```
-   NOTE: If `STATUS` is `Unhealthy`, run the below command to get more information
+   NOTE: If **STATUS** is **Unhealthy**, run the following command to get more information:
    ```
    kubectl get wavefront -n observability-system -o=jsonpath='{.items[0].status.message}'
    ```
-**Note**: For details on migrating from existing helm chart or manual deploy,
-see [Migration](docs/migration.md).
+
 
 # Configuration
 
@@ -125,6 +144,7 @@ We have templates for common scenarios. See the comments in each file for usage 
  * [Enabling proxy histogram support](./deploy/kubernetes/scenarios/wavefront-proxy-histogram.yaml)
  * [Enabling proxy tracing support](./deploy/kubernetes/scenarios/wavefront-proxy-tracing.yaml)
  * [Using an HTTP Proxy](./deploy/kubernetes/scenarios/wavefront-proxy-with-http-proxy.yaml)
+ * [Enabling logging (Beta)](./deploy/kubernetes/scenarios/wavefront-logging-full-config.yaml). If you enable logging, you can then use the Log Browser and other tools to analyze your logs. See [Logs Overview (Beta)](https://docs.wavefront.com/logging_overview.html). 
 
 You can see all configuration options in the [wavefront-full-config.yaml](./deploy/kubernetes/scenarios/wavefront-full-config.yaml).
 
